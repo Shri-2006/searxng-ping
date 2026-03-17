@@ -1,0 +1,22 @@
+name: Keep SearXNG Alive
+
+on:
+  schedule:
+    # Ping every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping SearXNG Space
+        run: |
+          echo "Pinging SearXNG at $(date)"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.SEARXNG_URL }}/search?q=test&format=json" --max-time 30)
+          echo "Response status: $STATUS"
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "429" ]; then
+            echo "✅ SearXNG is alive"
+          else
+            echo "⚠️ SearXNG returned status $STATUS — may be starting up"
+          fi
